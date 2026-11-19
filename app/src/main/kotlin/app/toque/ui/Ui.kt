@@ -20,16 +20,18 @@ import android.widget.TextView
 
 /** Thème sombre et utilitaires de mise en page, à l'échelle d'un écran de référence 1024×600. */
 object Ui {
-    const val BG = 0xFF0B0C0E.toInt()
-    const val SURFACE = 0xFF15171B.toInt()
-    const val SURFACE2 = 0xFF1E2127.toInt()
-    const val SURFACE3 = 0xFF272B32.toInt()
-    const val STROKE = 0xFF2C3038.toInt()
-    const val TEXT = 0xFFF3F4F6.toInt()
-    const val TEXT2 = 0xFF9BA1AA.toInt()
-    const val TEXT3 = 0xFF666C75.toInt()
-    const val ACCENT = 0xFFFF8A3D.toInt()
-    const val ACCENT_DIM = 0x33FF8A3D
+    // Warm charcoal + apricot.
+    const val BG = 0xFF141311.toInt()
+    const val SURFACE = 0xFF1D1C1A.toInt()
+    const val SURFACE2 = 0xFF282521.toInt()
+    const val SURFACE3 = 0xFF34302B.toInt()
+    const val STROKE = 0xFF4A4238.toInt()
+    const val TEXT = 0xFFF5EEE5.toInt()
+    const val TEXT2 = 0xFFBEB2A5.toInt()
+    const val TEXT3 = 0xFFA79B8E.toInt()
+    const val ACCENT = 0xFFEEAA79.toInt()
+    const val ACCENT_DIM = 0xFF3A2920.toInt()
+    const val ON_ACCENT = 0xFF24190F.toInt()
     const val COOL = 0xFF5CC8FF.toInt()
     const val OK = 0xFF3DDC97.toInt()
     const val WARN = 0xFFFFC14D.toInt()
@@ -131,7 +133,7 @@ object Ui {
     fun button(c: Context, label: String, style: Style = Style.SECONDARY, icon: Icon.Kind? = null,
                height: Int = 64, textSize: Float = 20f, onClick: (View) -> Unit): LinearLayout {
         val (bg, fg) = when (style) {
-            Style.PRIMARY -> ACCENT to 0xFF1A0E05.toInt()
+            Style.PRIMARY -> ACCENT to ON_ACCENT
             Style.SECONDARY -> SURFACE3 to TEXT
             Style.DANGER -> DANGER to Color.WHITE
             Style.GHOST -> Color.TRANSPARENT to TEXT2
@@ -140,8 +142,9 @@ object Ui {
         val row = horizontal(c, Gravity.CENTER)
         row.minimumHeight = u(height)
         row.setPadding(u(22), 0, u(22), 0)
-        val base = if (style == Style.GHOST) round(Color.TRANSPARENT, height / 2f, STROKE, 1.5f) else round(bg, height / 2f)
-        row.background = pressable(base, height / 2f)
+        val radius = 16f
+        val base = if (style == Style.GHOST) round(Color.TRANSPARENT, radius, STROKE, 1f) else round(bg, radius)
+        row.background = pressable(base, radius)
         if (icon != null) {
             row.addView(Icon(c, icon, fg), LinearLayout.LayoutParams(u(textSize * 1.3f), u(textSize * 1.3f)).apply {
                 if (label.isNotEmpty()) rightMargin = u(10)
@@ -173,7 +176,7 @@ object Ui {
 
     /** Puce sélectionnable (filtres, choix). */
     fun toggleChip(c: Context, label: String, selected: Boolean, onClick: () -> Unit): TextView {
-        val t = text(c, label, 17f, if (selected) 0xFF1A0E05.toInt() else TEXT, MEDIUM)
+        val t = text(c, label, 17f, if (selected) ON_ACCENT else TEXT, MEDIUM)
         t.setPadding(u(18), u(10), u(18), u(10))
         t.background = pressable(if (selected) round(ACCENT, 40f) else round(SURFACE2, 40f, STROKE, 1f), 40f)
         t.isClickable = true
@@ -181,7 +184,7 @@ object Ui {
         return t
     }
 
-    fun card(c: Context, radius: Float = 24f, color: Int = SURFACE): LinearLayout = vertical(c).apply {
+    fun card(c: Context, radius: Float = 20f, color: Int = SURFACE): LinearLayout = vertical(c).apply {
         background = round(color, radius)
         setPadding(u(20), u(18), u(20), u(18))
     }

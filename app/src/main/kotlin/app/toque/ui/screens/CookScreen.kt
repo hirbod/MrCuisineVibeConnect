@@ -208,18 +208,20 @@ class CookScreen(a: MainActivity, private val recipe: Recipe, startStep: Int) : 
                 if (m.accessory == Accessory.WHISK) line(Icon.Kind.WHISK, tr("Accessoire"), Accessory.WHISK.label, Ui.WARN)
             }
         }
-        panel.addView(grid, Ui.lp(t = 6))
+        // Details scroll if needed, so the action buttons below are never cut off.
+        val info = Ui.vertical(c)
+        info.addView(grid, Ui.lp(t = 6))
         val chained = if (a.prefs.chainSteps) chainLength(index) else 0
         if (chained > 0) {
             val next = (index + 1..index + chained).map { recipe.steps[it].machine!!.summary }
             val list = next.take(4).joinToString("\n") { "• $it" } +
                 if (next.size > 4) "\n" + tr("… et %d autres", next.size - 4) else ""
-            panel.addView(Ui.text(c, tr("Puis, enchaînés automatiquement :") + "\n" + list, 15f, Ui.TEXT2)
+            info.addView(Ui.text(c, tr("Puis, enchaînés automatiquement :") + "\n" + list, 16f, Ui.TEXT2)
                 .apply { setLineSpacing(0f, 1.1f) }, Ui.lp(t = 10))
         }
-        panelState = Ui.text(c, "", 16f, Ui.WARN).apply { setLineSpacing(0f, 1.1f) }
-        panel.addView(panelState, Ui.lp(t = 12))
-        panel.addView(Ui.spacer(c, weight = 1f), LinearLayout.LayoutParams(1, 0, 1f))
+        panelState = Ui.text(c, "", 17f, Ui.WARN).apply { setLineSpacing(0f, 1.1f) }
+        info.addView(panelState, Ui.lp(t = 12))
+        panel.addView(Ui.scroll(c, info).apply { isFillViewport = false }, LinearLayout.LayoutParams(Ui.MATCH, 0, 1f).apply { bottomMargin = Ui.u(8) })
 
         val violations = m.violations()
         val step = recipe.steps[index]

@@ -48,6 +48,7 @@ class RecipesScreen(a: MainActivity, private val focusSearch: Boolean = false, f
     private lateinit var count: TextView
     private lateinit var empty: LinearLayout
     private lateinit var emptyText: TextView
+    private lateinit var emptyIcon: Icon
     private val adapter = Adapter()
     private var unsub: (() -> Unit)? = null
     private val runSearch = Runnable { search() }
@@ -122,7 +123,8 @@ class RecipesScreen(a: MainActivity, private val focusSearch: Boolean = false, f
         }
         body.addView(grid, Ui.flp())
         empty = Ui.vertical(c, Gravity.CENTER)
-        empty.addView(Icon(c, Icon.Kind.BOOK, Ui.TEXT3), LinearLayout.LayoutParams(Ui.u(64), Ui.u(64)))
+        emptyIcon = Icon(c, Icon.Kind.BOOK, Ui.TEXT3)
+        empty.addView(emptyIcon, LinearLayout.LayoutParams(Ui.u(56), Ui.u(56)))
         emptyText = Ui.text(c, "", 21f, Ui.TEXT2).apply { gravity = Gravity.CENTER; setLineSpacing(0f, 1.2f) }
         empty.addView(emptyText, Ui.lp(Ui.u(640), Ui.WRAP, t = 16))
         body.addView(empty, Ui.flp())
@@ -163,6 +165,9 @@ class RecipesScreen(a: MainActivity, private val focusSearch: Boolean = false, f
         val none = repo.loaded && repo.count == 0
         count.text = if (results.isEmpty()) "" else if (results.size == 1) tr("1 recette") else tr("%d recettes", results.size)
         empty.visibility = if (results.isEmpty() && repo.loaded) View.VISIBLE else View.GONE
+        val favEmpty = filter.favoritesOnly && query.isBlank()
+        emptyIcon.set(if (favEmpty) Icon.Kind.STAR else Icon.Kind.BOOK)
+        emptyIcon.color = if (favEmpty) Ui.ACCENT else Ui.TEXT3
         emptyText.text = when {
             none && a.prefs.mode == Prefs.Mode.HARDWARE ->
                 tr("Les recettes Lidl apparaîtront après la première synchronisation.\nRéglages › Recettes Lidl › Synchroniser.")

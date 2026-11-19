@@ -4,11 +4,13 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import app.toque.Personal
 import app.toque.Prefs
 import app.toque.core.i18n.I18n
 import app.toque.core.i18n.tr
 import app.toque.core.machine.Snapshot
 import app.toque.ui.Icon
+import app.toque.ui.LoveNote
 import app.toque.ui.MainActivity
 import app.toque.ui.Screen
 import app.toque.ui.Ui
@@ -16,7 +18,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 class HomeScreen(a: MainActivity) : Screen(a) {
-    override val title = "Toque"
+    private val personal = Personal.load(a, a.app.log)
+    override val title = personal.title ?: "Toque"
     private lateinit var clock: TextView
     private lateinit var date: TextView
     private lateinit var greeting: TextView
@@ -25,7 +28,10 @@ class HomeScreen(a: MainActivity) : Screen(a) {
     private lateinit var settingsSub: TextView
     private lateinit var resumeCard: LinearLayout
     private lateinit var resumeText: TextView
+    private lateinit var love: LoveNote
     private var unsub: (() -> Unit)? = null
+    private var greetingSlot = -1
+
     private val tick = object : Runnable {
         override fun run() {
             refreshClock()
@@ -38,9 +44,9 @@ class HomeScreen(a: MainActivity) : Screen(a) {
         root.setPadding(Ui.u(28), Ui.u(10), Ui.u(24), Ui.u(24))
 
         val left = Ui.vertical(c)
-        greeting = Ui.text(c, "", 24f, Ui.TEXT2, Ui.LIGHT)
+        greeting = Ui.ellipsize(Ui.text(c, "", 24f, if (personal.greetings.isEmpty()) Ui.TEXT2 else LoveNote.ROSE, Ui.REGULAR))
         left.addView(greeting, Ui.lp(t = 8))
-        clock = Ui.text(c, "", 132f, Ui.TEXT, Ui.THIN)
+        clock = Ui.text(c, "", 100f, Ui.TEXT, Ui.LIGHT)
         left.addView(clock, Ui.lp(t = 2))
         date = Ui.text(c, "", 22f, Ui.TEXT2, Ui.LIGHT)
         left.addView(date, Ui.lp(t = 2))
@@ -52,39 +58,43 @@ class HomeScreen(a: MainActivity) : Screen(a) {
         search.addView(Ui.text(c, tr("Rechercher une recette…"), 21f, Ui.TEXT3))
         search.isClickable = true
         search.setOnClickListener { a.push(RecipesScreen(a, focusSearch = true)) }
-        left.addView(search, Ui.lp(Ui.MATCH, Ui.u(72), t = 34))
+        left.addView(search, Ui.lp(Ui.MATCH, Ui.u(64), t = 22))
 
         resumeCard = Ui.horizontal(c)
-        resumeCard.setPadding(Ui.u(22), Ui.u(16), Ui.u(18), Ui.u(16))
+        resumeCard.setPadding(Ui.u(20), Ui.u(10), Ui.u(16), Ui.u(10))
         resumeCard.background = Ui.pressable(Ui.round(Ui.ACCENT_DIM, 24f), 24f)
         resumeCard.addView(Icon(c, Icon.Kind.PLAY, Ui.ACCENT), LinearLayout.LayoutParams(Ui.u(26), Ui.u(26)).apply { rightMargin = Ui.u(14) })
-        resumeText = Ui.ellipsize(Ui.text(c, "", 19f, Ui.TEXT, Ui.MEDIUM), 2)
+        resumeText = Ui.ellipsize(Ui.text(c, "", 18f, Ui.TEXT, Ui.MEDIUM), 1)
         resumeCard.addView(resumeText, LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         resumeCard.isClickable = true
         resumeCard.setOnClickListener {
             val r = a.app.recipes.get(a.prefs.guidedRecipe)
             if (r != null) a.push(CookScreen(a, r, a.prefs.guidedStep)) else { a.prefs.guidedRecipe = ""; refresh() }
         }
-        left.addView(resumeCard, Ui.lp(Ui.MATCH, Ui.WRAP, t = 16))
+        left.addView(resumeCard, Ui.lp(Ui.MATCH, Ui.WRAP, t = 12))
+        left.addView(Ui.spacer(c), LinearLayout.LayoutParams(1, 0, 1f))
+        love = LoveNote(c, personal.messages, personal.signature)
+        if (personal.messages.isNotEmpty()) left.addView(love, Ui.lp(Ui.MATCH, love.fixedHeight, t = 12))
         root.addView(left, LinearLayout.LayoutParams(0, Ui.MATCH, 0.42f).apply { rightMargin = Ui.u(28) })
 
+        // Two columns x three rows: wider tiles, so German labels fit on one line.
         val grid = Ui.vertical(c)
-        val row1 = Ui.horizontal(c)
-        val row2 = Ui.horizontal(c)
+        val rows = List(3) { Ui.horizontal(c) }
         val (t1, s1) = tile(Icon.Kind.BOOK, tr("Recettes")) { a.push(RecipesScreen(a)) }
         recipesSub = s1
-        row1.addView(t1, tileLp(true))
-        row1.addView(tile(Icon.Kind.POT, tr("Cuisson\nmanuelle"), tr("Temps, chaleur, vitesse")) { a.push(ManualScreen(a)) }.first, tileLp(true))
-        row1.addView(tile(Icon.Kind.KNEAD, tr("Programmes"), tr("Pétrir, vapeur, rissoler")) { a.push(ProgramsScreen(a)) }.first, tileLp(false))
-        row2.addView(tile(Icon.Kind.SCALE, tr("Balance"), tr("Peser au gramme")) { a.push(ScaleScreen(a)) }.first, tileLp(true))
+        rows[0].addView(t1, tileLp(true))
+        rows[0].addView(tile(Icon.Kind.POT, tr("Cuisson\nmanuelle"), tr("Temps, chaleur, vitesse")) { a.push(ManualScreen(a)) }.first, tileLp(false))
+        rows[1].addView(tile(Icon.Kind.KNEAD, tr("Programmes"), tr("Pétrir, vapeur, rissoler")) { a.push(ProgramsScreen(a)) }.first, tileLp(true))
+        rows[1].addView(tile(Icon.Kind.SCALE, tr("Balance"), tr("Peser au gramme")) { a.push(ScaleScreen(a)) }.first, tileLp(false))
         val (t5, s5) = tile(Icon.Kind.STAR, tr("Favoris")) { a.push(RecipesScreen(a, favorites = true)) }
         favSub = s5
-        row2.addView(t5, tileLp(true))
+        rows[2].addView(t5, tileLp(true))
         val (t6, s6) = tile(Icon.Kind.SETTINGS, tr("Réglages")) { a.push(SettingsScreen(a)) }
         settingsSub = s6
-        row2.addView(t6, tileLp(false))
-        grid.addView(row1, LinearLayout.LayoutParams(Ui.MATCH, 0, 1f).apply { bottomMargin = Ui.u(16) })
-        grid.addView(row2, LinearLayout.LayoutParams(Ui.MATCH, 0, 1f))
+        rows[2].addView(t6, tileLp(false))
+        rows.forEachIndexed { i, r ->
+            grid.addView(r, LinearLayout.LayoutParams(Ui.MATCH, 0, 1f).apply { if (i < 2) bottomMargin = Ui.u(16) })
+        }
         root.addView(grid, LinearLayout.LayoutParams(0, Ui.MATCH, 0.58f))
         return root
     }
@@ -92,17 +102,18 @@ class HomeScreen(a: MainActivity) : Screen(a) {
     private fun tileLp(gap: Boolean) = LinearLayout.LayoutParams(0, Ui.MATCH, 1f).apply { if (gap) rightMargin = Ui.u(16) }
 
     private fun tile(icon: Icon.Kind, title: String, sub: String = "", onClick: () -> Unit): Pair<LinearLayout, TextView> {
-        val t = Ui.vertical(c)
-        t.setPadding(Ui.u(20), Ui.u(20), Ui.u(18), Ui.u(18))
-        t.background = Ui.pressable(Ui.round(Ui.SURFACE, 26f), 26f)
+        val t = Ui.horizontal(c)
+        t.setPadding(Ui.u(18), Ui.u(14), Ui.u(16), Ui.u(14))
+        t.background = Ui.pressable(Ui.round(Ui.SURFACE, 20f, Ui.SURFACE2, 1f), 20f)
         val badge = android.widget.FrameLayout(c)
-        badge.background = Ui.round(Ui.ACCENT_DIM, 26f)
-        badge.addView(Icon(c, icon, Ui.ACCENT), Ui.flp(Ui.u(28), Ui.u(28), Gravity.CENTER))
-        t.addView(badge, LinearLayout.LayoutParams(Ui.u(52), Ui.u(52)))
-        t.addView(Ui.spacer(c, weight = 1f), LinearLayout.LayoutParams(1, 0, 1f))
-        t.addView(Ui.text(c, title, 23f, Ui.TEXT, Ui.MEDIUM).apply { setLineSpacing(0f, 1.05f) })
-        val s = Ui.ellipsize(Ui.text(c, sub, 16f, Ui.TEXT2), 2)
-        t.addView(s, Ui.lp(t = 6))
+        badge.background = Ui.round(Ui.ACCENT_DIM, 22f)
+        badge.addView(Icon(c, icon, Ui.ACCENT), Ui.flp(Ui.u(26), Ui.u(26), Gravity.CENTER))
+        t.addView(badge, LinearLayout.LayoutParams(Ui.u(48), Ui.u(48)).apply { rightMargin = Ui.u(14) })
+        val texts = Ui.vertical(c)
+        texts.addView(Ui.ellipsize(Ui.text(c, title.replace('\n', ' '), 22f, Ui.TEXT, Ui.MEDIUM)))
+        val s = Ui.ellipsize(Ui.text(c, sub, 16f, Ui.TEXT2).apply { setLineSpacing(0f, 1.05f) }, 2)
+        texts.addView(s, Ui.lp(t = 4))
+        t.addView(texts, LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         t.isClickable = true
         t.setOnClickListener { onClick() }
         return t to s
@@ -112,10 +123,14 @@ class HomeScreen(a: MainActivity) : Screen(a) {
         clock.text = MainActivity.now()
         date.text = SimpleDateFormat(tr("EEEE d MMMM"), I18n.locale).format(Date()).replaceFirstChar { it.uppercaseChar() }
         val h = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-        greeting.text = when (h) {
-            in 5..11 -> tr("Bonjour")
-            in 12..17 -> tr("Bon après-midi")
-            else -> tr("Bonsoir")
+        val slot = when (h) { in 5..10 -> 0; in 11..17 -> 1; in 18..22 -> 2; else -> 3 }
+        if (slot != greetingSlot) {
+            greetingSlot = slot
+            greeting.text = personal.greeting(slot) ?: when (slot) {
+                0 -> tr("Bonjour")
+                1 -> tr("Bon après-midi")
+                else -> tr("Bonsoir")
+            }
         }
     }
 
@@ -137,14 +152,17 @@ class HomeScreen(a: MainActivity) : Screen(a) {
     }
 
     override fun onShow() {
+        greetingSlot = -1 // a new greeting every time the home screen appears
         refreshClock()
         refresh()
         unsub = a.app.recipes.onChange { refresh() }
         view.removeCallbacks(tick)
         view.postDelayed(tick, 10_000)
+        love.start()
     }
 
     override fun onHide() {
+        love.stop()
         unsub?.invoke()
         view.removeCallbacks(tick)
     }

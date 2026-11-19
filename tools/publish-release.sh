@@ -10,7 +10,7 @@
 # credential already stored for git (macOS keychain). It is never printed.
 # --dry-run only reads from GitHub and prints what would be published.
 set -u
-REPO_SLUG="Wuki60/MrCuisineVibeConnect"
+REPO_SLUG="hirbod/MrCuisineVibeConnect"
 APK=""
 REPO_INFO=0
 DRY_RUN=0

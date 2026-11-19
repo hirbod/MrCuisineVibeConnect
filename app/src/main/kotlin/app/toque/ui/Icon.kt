@@ -12,7 +12,7 @@ class Icon(context: Context, var kind: Kind, color: Int) : View(context) {
     enum class Kind {
         BACK, SEARCH, PLAY, PAUSE, STOP, THERMO, SPEED, CLOCK, REVERSE, SCALE, BOOK, STAR, STAR_FILLED,
         SETTINGS, PLUS, MINUS, CHECK, CLOSE, KNEAD, STEAM, FLAME, BOLT, SYNC, LID, WARNING, HOME, WHISK,
-        CHEVRON, LINK, INFO, POT, TIMER,
+        CHEVRON, LINK, INFO, POT, TIMER, HEART,
     }
 
     var color: Int = color
@@ -36,6 +36,16 @@ class Icon(context: Context, var kind: Kind, color: Int) : View(context) {
     private val path = Path()
     private val rect = RectF()
 
+    /** Stroke width on the 24×24 grid. */
+    var strokeWidth = 2f
+
+    init {
+        // Android 6 with hardware acceleration rasterises paths at their untransformed size (24 px)
+        // and then scales the texture up, which makes the icons blurry/pixelated. Software
+        // rendering draws them at the real size; the icons are small, so this costs little.
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
+    }
+
     fun set(k: Kind) {
         if (k != kind) {
             kind = k
@@ -44,12 +54,14 @@ class Icon(context: Context, var kind: Kind, color: Int) : View(context) {
     }
 
     override fun onDraw(canvas: Canvas) {
-        val s = minOf(width, height) / 24f
+        val w = width - paddingLeft - paddingRight
+        val h = height - paddingTop - paddingBottom
+        val s = minOf(w, h) / 24f
         if (s <= 0f) return
         canvas.save()
-        canvas.translate((width - 24 * s) / 2f, (height - 24 * s) / 2f)
+        canvas.translate(paddingLeft + (w - 24 * s) / 2f, paddingTop + (h - 24 * s) / 2f)
         canvas.scale(s, s)
-        stroke.strokeWidth = 2f
+        stroke.strokeWidth = strokeWidth
         val p = path
         p.reset()
         when (kind) {
@@ -140,7 +152,20 @@ class Icon(context: Context, var kind: Kind, color: Int) : View(context) {
                 p.moveTo(12f, 3f); p.lineTo(22f, 20.5f); p.lineTo(2f, 20.5f); p.close(); canvas.drawPath(p, stroke)
                 canvas.drawLine(12f, 9.5f, 12f, 14f, stroke); canvas.drawCircle(12f, 17.3f, 1.2f, fill)
             }
-            Kind.HOME -> { p.moveTo(3.5f, 11f); p.lineTo(12f, 4f); p.lineTo(20.5f, 11f); canvas.drawPath(p, stroke); rect.set(6f, 10f, 18f, 20f); canvas.drawRect(rect, stroke) }
+            Kind.HOME -> {
+                // Rounded house with a door.
+                p.moveTo(4f, 10.5f); p.lineTo(12f, 4f); p.lineTo(20f, 10.5f)
+                p.moveTo(6f, 8.9f); p.lineTo(6f, 20f); p.lineTo(18f, 20f); p.lineTo(18f, 8.9f)
+                p.moveTo(10f, 20f); p.lineTo(10f, 14f); p.lineTo(14f, 14f); p.lineTo(14f, 20f)
+                canvas.drawPath(p, stroke)
+            }
+            Kind.HEART -> {
+                p.moveTo(12f, 20.5f)
+                p.cubicTo(5.5f, 16f, 2.5f, 12.5f, 2.5f, 8.8f); p.cubicTo(2.5f, 5.7f, 4.9f, 3.5f, 7.6f, 3.5f)
+                p.cubicTo(9.5f, 3.5f, 11f, 4.6f, 12f, 6.2f); p.cubicTo(13f, 4.6f, 14.5f, 3.5f, 16.4f, 3.5f)
+                p.cubicTo(19.1f, 3.5f, 21.5f, 5.7f, 21.5f, 8.8f); p.cubicTo(21.5f, 12.5f, 18.5f, 16f, 12f, 20.5f); p.close()
+                canvas.drawPath(p, fill)
+            }
             Kind.WHISK -> {
                 canvas.drawLine(12f, 21.5f, 12f, 15f, stroke)
                 rect.set(7f, 2.5f, 17f, 16f); canvas.drawOval(rect, stroke)

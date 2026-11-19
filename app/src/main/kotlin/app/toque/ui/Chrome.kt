@@ -42,7 +42,7 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
     private val lid = Ui.chip(a, tr("Couvercle ouvert"), Icon.Kind.LID, Ui.WARN, 0x33FFC14D)
     private val link = Ui.chip(a, "", Icon.Kind.LINK, Ui.TEXT2)
     private val clock = Ui.text(a, "", 22f, Ui.TEXT, Ui.LIGHT)
-    private val home = Icon(a, Icon.Kind.HOME, Ui.TEXT2)
+    private val home = Icon(a, Icon.Kind.HOME, Ui.TEXT)
     private val handler = Handler(Looper.getMainLooper())
     private val tick = object : Runnable {
         override fun run() {
@@ -58,19 +58,22 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
         setGravity(Gravity.CENTER_VERTICAL)
         setPadding(Ui.u(10), 0, Ui.u(18), 0)
         setBackgroundColor(Ui.BG)
-        back.setPadding(Ui.u(10), Ui.u(10), Ui.u(10), Ui.u(10))
-        back.background = Ui.pressable(Ui.round(0, 30f), 30f)
+        // Round, softly filled buttons; the icons inside are drawn crisp (see Icon).
+        back.setPadding(Ui.u(17), Ui.u(17), Ui.u(17), Ui.u(17))
+        back.background = navBg()
+        back.contentDescription = "Zurück"
         back.setOnClickListener { a.back() }
-        addView(back, LayoutParams(Ui.u(52), Ui.u(52)))
+        addView(back, LayoutParams(Ui.u(52), Ui.u(52)).apply { leftMargin = Ui.u(4) })
         addView(titleView, LayoutParams(0, Ui.WRAP, 1f).apply { leftMargin = Ui.u(6) })
         addView(lid, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
         addView(temp, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
         addView(link, Ui.lp(Ui.WRAP, Ui.WRAP, r = 16))
         addView(clock, Ui.lp(Ui.WRAP, Ui.WRAP, r = 6))
-        home.setPadding(Ui.u(10), Ui.u(10), Ui.u(10), Ui.u(10))
-        home.background = Ui.pressable(Ui.round(0, 30f), 30f)
+        home.setPadding(Ui.u(17), Ui.u(17), Ui.u(17), Ui.u(17))
+        home.background = navBg()
+        home.contentDescription = "Startseite"
         home.setOnClickListener { a.home() }
-        addView(home, LayoutParams(Ui.u(52), Ui.u(52)))
+        addView(home, LayoutParams(Ui.u(52), Ui.u(52)).apply { leftMargin = Ui.u(4) })
         lid.visibility = View.GONE
         temp.visibility = View.GONE
         // Accès caché aux réglages Android : 5 appuis rapides sur l'heure.
@@ -84,6 +87,10 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
         }
     }
 
+    /** Small 38 px circle centred in a larger 52 px touch target (hit slop). */
+    private fun navBg(): android.graphics.drawable.Drawable =
+        android.graphics.drawable.InsetDrawable(Ui.pressable(Ui.round(Ui.SURFACE2, 19f), 19f), Ui.u(7))
+
     fun startClock() {
         handler.removeCallbacks(tick)
         tick.run()
@@ -93,7 +100,10 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
 
     fun setTitle(t: String, canGoBack: Boolean) {
         titleView.text = t
-        back.visibility = if (canGoBack) View.VISIBLE else View.INVISIBLE
+        // Home: no back arrow, so the title lines up with the page content instead of leaving a gap.
+        back.visibility = if (canGoBack) View.VISIBLE else View.GONE
+        (titleView.layoutParams as LayoutParams).leftMargin = Ui.u(if (canGoBack) 10 else 18)
+        titleView.requestLayout()
         home.visibility = if (canGoBack) View.VISIBLE else View.GONE
     }
 
