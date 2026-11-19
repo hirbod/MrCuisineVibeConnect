@@ -314,6 +314,9 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         ) {
             a.prefs.mode = Prefs.Mode.DEMO
             a.prefs.bootLaunch = false
+            // If Toque was made the default home screen, hand that back too, so the robot really
+            // starts into the stock app again.
+            try { a.packageManager.clearPackagePreferredActivities(a.packageName) } catch (_: Exception) {}
             a.machine.reconfigure {
                 Thread {
                     val sync = LidlSync(a, a.prefs, a.app.recipes, a.app.log)

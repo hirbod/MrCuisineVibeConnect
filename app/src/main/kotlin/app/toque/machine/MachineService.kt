@@ -104,7 +104,13 @@ class MachineService : Service() {
             Prefs.Mode.HARDWARE -> {
                 val dev = prefs.serialDevice
                 val vendor = prefs.vendorPackage
-                ({ RootSerialTransport(dev, 4800, vendor) })
+                // As the home screen, Toque now starts before Android has finished booting. Asking
+                // Magisk for root that early shows a prompt that times out as "deny forever", so
+                // wait for boot completion first (the loop simply retries a few seconds later).
+                ({
+                    check(bootCompleted() && android.os.SystemClock.elapsedRealtime() >= 60_000) { "Android startet noch" }
+                    RootSerialTransport(dev, 4800, vendor)
+                })
             }
         }
         val l = MachineLoop(
@@ -285,5 +291,12 @@ class MachineService : Service() {
             return if (s >= 3600) String.format("%d:%02d:%02d", s / 3600, (s / 60) % 60, s % 60)
             else String.format("%02d:%02d", s / 60, s % 60)
         }
+    }
+
+    private fun bootCompleted(): Boolean = try {
+        val sp = Class.forName("android.os.SystemProperties")
+        sp.getMethod("get", String::class.java).invoke(null, "sys.boot_completed") == "1"
+    } catch (_: Exception) {
+        true
     }
 }

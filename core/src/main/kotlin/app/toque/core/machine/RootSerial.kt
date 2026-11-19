@@ -32,7 +32,36 @@ object RootShell {
 
     private val drained = java.util.WeakHashMap<Thread, ByteArrayOutputStream>()
 
+    /**
+     * Blocks until Android reports boot completion (at most [maxMs]). Asking Magisk for root before
+     * that shows a prompt that may end up as "deny forever". No-op where getprop is missing (tests).
+     */
+    private const val MIN_UPTIME_MS = 60_000L
+
+    private fun uptimeMs(): Long = try {
+        (java.io.File("/proc/uptime").readText().trim().substringBefore(' ').toDouble() * 1000).toLong()
+    } catch (_: Exception) {
+        Long.MAX_VALUE
+    }
+
+    fun awaitBoot(maxMs: Long = 120_000) {
+        val end = System.currentTimeMillis() + maxMs
+        while (System.currentTimeMillis() < end) {
+            val v = try {
+                val p = ProcessBuilder("getprop", "sys.boot_completed").start()
+                p.inputStream.bufferedReader().readText().trim().also { p.waitFor() }
+            } catch (_: Exception) {
+                return
+            }
+            // Magisk itself needs a little longer after boot: requests in roughly the first
+            // 30-40 s of uptime get a prompt (and a missed prompt is saved as "deny").
+            if (v == "1" && uptimeMs() >= MIN_UPTIME_MS) return
+            Thread.sleep(1_000)
+        }
+    }
+
     fun run(command: String, timeoutMs: Long = 10_000): Result {
+        awaitBoot()
         val p = try {
             ProcessBuilder("su", "-c", command).start()
         } catch (e: IOException) {
@@ -124,6 +153,7 @@ class RootSerialTransport(
             "\$B stty -F \$D $baud raw -echo cs8 -cstopb -parenb -crtscts clocal cread || exit 3; " +
             "\$B cat \$D & R=\$!; trap 'kill \$R 2>/dev/null' EXIT INT TERM HUP; " +
             "\$B cat > \$D; kill \$R 2>/dev/null"
+        RootShell.awaitBoot()
         val p = ProcessBuilder("su", "-c", script).start()
         process = p
         try {
