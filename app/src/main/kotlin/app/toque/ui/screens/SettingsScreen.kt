@@ -152,6 +152,7 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         tools.addView(link(tr("Bouton rotatif")) { a.push(KnobScreen(a)) })
         tools.addView(link(tr("Journal")) { a.push(LogScreen(a)) })
         tools.addView(link(tr("Paramètres Android")) { a.openAndroidSettings() })
+        tools.addView(link(tr("Redémarrer le robot")) { rebootRobot() })
         tools.addView(link(tr("Revenir à l'appli d'origine")) { restoreVendor() })
         val version = try { a.packageManager.getPackageInfo(a.packageName, 0).versionName } catch (_: Exception) { "?" }
         tools.addView(Ui.text(c, tr("Toque %s · protocole d'après le Monsieur Cuisine Developer SDK (licence MIT). " +
@@ -303,6 +304,24 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
                 } else save()
             }
         }.start()
+    }
+
+    private fun rebootRobot() {
+        if (a.snapshot.busy) {
+            a.toast(tr("Impossible pendant un programme"), Ui.WARN)
+            return
+        }
+        a.confirm(
+            tr("Redémarrer le robot"),
+            tr("Le robot redémarre, puis Toque s'ouvre tout seul. Le moteur est prêt environ une minute après."),
+            tr("Redémarrer"),
+            icon = Icon.Kind.SYNC,
+        ) {
+            Thread {
+                val r = RootShell.run("svc power reboot || reboot", 15_000)
+                if (r.code != 0) view.post { a.toast(tr("Accès root indisponible"), Ui.WARN) }
+            }.start()
+        }
     }
 
     private fun restoreVendor() {
