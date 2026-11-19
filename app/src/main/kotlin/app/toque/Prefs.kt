@@ -89,6 +89,13 @@ class Prefs(context: Context) {
             p.edit().putBoolean("sound", v).commit()
         }
 
+    /** Screen sleep after this many idle minutes (0 = never). Never while a program runs. */
+    var sleepMinutes: Int
+        get() = p.getInt("sleepMinutes", 10)
+        set(v) {
+            p.edit().putInt("sleepMinutes", v).commit()
+        }
+
     /** Fuseau horaire : « auto » (d'après la connexion Internet) ou un identifiant IANA choisi à la main. */
     var timeZone: String
         get() = p.getString("timeZone", "auto") ?: "auto"

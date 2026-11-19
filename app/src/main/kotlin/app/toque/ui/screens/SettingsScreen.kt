@@ -119,6 +119,16 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
             Ui.lp(Ui.WRAP, Ui.WRAP, t = 16))
         refreshTime()
 
+        // ---- Écran (screen sleep)
+        val screen = section(right, tr("Écran"), Icon.Kind.CLOCK)
+        val sleepOptions = listOf("0" to tr("Jamais")) + listOf(2, 5, 10, 15, 30).map { "$it" to tr("Après %d min", it) }
+        screen.addView(Ui.text(c, tr("Mise en veille"), 18f, Ui.TEXT), Ui.lp(t = 2))
+        screen.addView(dropdown(sleepOptions, a.prefs.sleepMinutes.toString()) { v ->
+            a.prefs.sleepMinutes = v.toInt()
+        }, Ui.lp(Ui.MATCH, Ui.u(50), t = 10))
+        screen.addView(Ui.text(c, tr("L'écran s'assombrit après ce délai sans utilisation. Un appui ou le bouton rotatif le rallume. Jamais pendant un programme."),
+            15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.15f) }, Ui.lp(t = 10))
+
         // ---- Recettes Lidl
         val lidl = section(right, tr("Recettes Lidl"), Icon.Kind.SYNC)
         lidl.addView(Ui.text(c, tr("Toque télécharge lui-même les recettes officielles du Monsieur Cuisine connect sur monsieur-cuisine.com (sans compte)."),
