@@ -36,13 +36,13 @@ abstract class Screen(val a: MainActivity) {
 
 /** Barre supérieure : retour, titre, état de la base, heure. */
 class TopBar(private val a: MainActivity) : LinearLayout(a) {
-    private val back = navButton(Icon.Kind.BACK, "Zurück") { a.back() }
+    private val back = navButton(Icon.Kind.BACK, tr("Revenir")) { a.back() }
     private val titleView = Ui.ellipsize(Ui.text(a, "", 24f, Ui.TEXT, Ui.MEDIUM))
     private val temp = Ui.chip(a, "", Icon.Kind.THERMO, Ui.TEXT2)
     private val lid = Ui.chip(a, tr("Couvercle ouvert"), Icon.Kind.LID, Ui.WARN, 0x33FFC14D)
     private val link = Ui.chip(a, "", Icon.Kind.LINK, Ui.TEXT2)
     private val clock = Ui.text(a, "", 22f, Ui.TEXT, Ui.LIGHT)
-    private val home = navButton(Icon.Kind.HOME, "Startseite") { a.home() }
+    private val home = navButton(Icon.Kind.HOME, tr("Accueil")) { a.home() }
     private val handler = Handler(Looper.getMainLooper())
     private val tick = object : Runnable {
         override fun run() {

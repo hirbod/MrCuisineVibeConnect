@@ -108,7 +108,7 @@ class MachineService : Service() {
                 // Magisk for root that early shows a prompt that times out as "deny forever", so
                 // wait for boot completion first (the loop simply retries a few seconds later).
                 ({
-                    check(bootCompleted() && android.os.SystemClock.elapsedRealtime() >= 60_000) { "Android startet noch" }
+                    check(bootCompleted() && android.os.SystemClock.elapsedRealtime() >= 60_000) { "Android is still starting" }
                     RootSerialTransport(dev, 4800, vendor)
                 })
             }
