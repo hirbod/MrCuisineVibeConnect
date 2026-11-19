@@ -207,6 +207,9 @@ and without macFUSE the FUSE package stops mtkclient from starting
 
 ## After the install
 
+- Personal home screen (title, greetings, message card): optional `personal.json` on the robot,
+  see [docs/PERSONAL.md](docs/PERSONAL.md). Never commit its contents: this repository is public.
+
 - Updates: Toque › Settings › Updates installs new releases from the original repository.
 - Recipes: Settings › Lidl recipes › Sync (monsieur-cuisine.com, no account). Nightly re-sync.
 - Clock: set automatically (time zone from the Internet connection); Settings › Date and time.

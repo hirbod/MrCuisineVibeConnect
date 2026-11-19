@@ -122,6 +122,12 @@ Android Studio's JDK works:
    Twin (PC)* (emulator: host `10.0.2.2`; real device: `adb reverse tcp:8765 tcp:8765` and host
    `127.0.0.1`). `python3 tools/twin.py --send "lid 1"` opens the lid, etc.
 
+## Personal home screen
+
+An optional `personal.json` on the robot sets your own home title, time-of-day greetings and a small
+card with rotating messages. It stays on the device (never in the app or this repository): see
+[docs/PERSONAL.md](docs/PERSONAL.md).
+
 ## Add a language
 
 The app is written in French; each other language is one file in
