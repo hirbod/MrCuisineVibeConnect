@@ -7,7 +7,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.RippleDrawable
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
@@ -64,8 +63,19 @@ object Ui {
             if (strokeWidth > 0) setStroke(u(strokeWidth), strokeColor)
         }
 
-    fun pressable(base: Drawable, radius: Float, ripple: Int = 0x33FFFFFF): Drawable =
-        RippleDrawable(ColorStateList.valueOf(ripple), base, round(Color.WHITE, radius))
+    /**
+     * Pressed feedback that stays inside the rounded shape. (On Android 6 the RippleDrawable
+     * animation ignores rounded masks and briefly shows a rectangle.) A soft fade instead.
+     */
+    fun pressable(base: Drawable, radius: Float, ripple: Int = 0x1CFFFFFF): Drawable =
+        android.graphics.drawable.StateListDrawable().apply {
+            setEnterFadeDuration(70)
+            setExitFadeDuration(180)
+            val pressedBase = base.constantState?.newDrawable()?.mutate() ?: base
+            addState(intArrayOf(android.R.attr.state_pressed),
+                android.graphics.drawable.LayerDrawable(arrayOf(pressedBase, round(ripple, radius))))
+            addState(intArrayOf(), base)
+        }
 
     fun text(c: Context, s: CharSequence = "", size: Float = 18f, color: Int = TEXT, face: Typeface = REGULAR): TextView =
         TextView(c).apply {
