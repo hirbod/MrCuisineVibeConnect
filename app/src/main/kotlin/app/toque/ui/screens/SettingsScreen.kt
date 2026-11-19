@@ -222,8 +222,10 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         val box = Ui.horizontal(c)
         box.setPadding(Ui.u(16), 0, Ui.u(14), 0)
         Ui.setPressable(box, Ui.round(Ui.SURFACE2, 16f, Ui.STROKE, 1f), 16f)
+        var current = selected
         val label = options.firstOrNull { it.first == selected }?.second ?: options.first().second
-        box.addView(Ui.ellipsize(Ui.text(c, label, 17f, Ui.TEXT)), LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
+        val labelView = Ui.ellipsize(Ui.text(c, label, 17f, Ui.TEXT))
+        box.addView(labelView, LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         box.addView(Icon(c, Icon.Kind.CHEVRON, Ui.TEXT2).apply { rotation = 90f }, LinearLayout.LayoutParams(Ui.u(22), Ui.u(22)))
         box.isClickable = true
         box.setOnClickListener {
@@ -236,13 +238,18 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
             val height = if (options.size > 7) Ui.u(400) else ViewGroup.LayoutParams.WRAP_CONTENT
             val popup = PopupWindow(scroll, box.width, height, false)
             for ((code, name) in options) {
-                val row = Ui.text(c, name, 19f, if (code == selected) Ui.ACCENT else Ui.TEXT)
+                val row = Ui.text(c, name, 19f, if (code == current) Ui.ACCENT else Ui.TEXT)
                 row.setPadding(Ui.u(16), Ui.u(14), Ui.u(16), Ui.u(14))
                 Ui.setPressable(row, Ui.round(0, 0f), 0f)
                 row.isClickable = true
                 row.setOnClickListener {
                     popup.dismiss()
-                    if (code != selected) onPick(code)
+                    if (code != current) {
+                        // Show the new choice right away (the label used to keep the old value).
+                        current = code
+                        labelView.text = name
+                        onPick(code)
+                    }
                 }
                 list.addView(row, Ui.lp(Ui.MATCH, Ui.WRAP))
             }
