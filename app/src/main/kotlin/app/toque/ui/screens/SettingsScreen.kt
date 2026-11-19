@@ -201,7 +201,7 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         row.setPadding(0, Ui.u(14), 0, Ui.u(14))
         row.addView(Ui.text(c, label, 18f, Ui.TEXT), LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         row.addView(Icon(c, Icon.Kind.CHEVRON, Ui.TEXT3), LinearLayout.LayoutParams(Ui.u(20), Ui.u(20)))
-        row.background = Ui.pressable(Ui.round(0, 8f), 8f)
+        Ui.setPressable(row, Ui.round(0, 8f), 8f)
         row.isClickable = true
         row.setOnClickListener { onClick() }
         return row
@@ -211,7 +211,7 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
     private fun dropdown(options: List<Pair<String, String>>, selected: String, onPick: (String) -> Unit): View {
         val box = Ui.horizontal(c)
         box.setPadding(Ui.u(16), 0, Ui.u(14), 0)
-        box.background = Ui.pressable(Ui.round(Ui.SURFACE2, 16f, Ui.STROKE, 1f), 16f)
+        Ui.setPressable(box, Ui.round(Ui.SURFACE2, 16f, Ui.STROKE, 1f), 16f)
         val label = options.firstOrNull { it.first == selected }?.second ?: options.first().second
         box.addView(Ui.ellipsize(Ui.text(c, label, 17f, Ui.TEXT)), LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         box.addView(Icon(c, Icon.Kind.CHEVRON, Ui.TEXT2).apply { rotation = 90f }, LinearLayout.LayoutParams(Ui.u(22), Ui.u(22)))
@@ -228,7 +228,7 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
             for ((code, name) in options) {
                 val row = Ui.text(c, name, 19f, if (code == selected) Ui.ACCENT else Ui.TEXT)
                 row.setPadding(Ui.u(16), Ui.u(14), Ui.u(16), Ui.u(14))
-                row.background = Ui.pressable(Ui.round(0, 0f), 0f)
+                Ui.setPressable(row, Ui.round(0, 0f), 0f)
                 row.isClickable = true
                 row.setOnClickListener {
                     popup.dismiss()

@@ -63,19 +63,18 @@ object Ui {
             if (strokeWidth > 0) setStroke(u(strokeWidth), strokeColor)
         }
 
+    fun pressable(base: Drawable, radius: Float, ripple: Int = 0x26FFFFFF): Drawable =
+        android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(ripple), base, round(Color.WHITE, radius))
+
     /**
-     * Pressed feedback that stays inside the rounded shape. (On Android 6 the RippleDrawable
-     * animation ignores rounded masks and briefly shows a rectangle.) A soft fade instead.
+     * Rounded background with a ripple. On Android 6 the ripple animation ignores rounded masks and
+     * briefly shows a rectangle, so the view itself is also clipped to its rounded outline.
      */
-    fun pressable(base: Drawable, radius: Float, ripple: Int = 0x1CFFFFFF): Drawable =
-        android.graphics.drawable.StateListDrawable().apply {
-            setEnterFadeDuration(70)
-            setExitFadeDuration(180)
-            val pressedBase = base.constantState?.newDrawable()?.mutate() ?: base
-            addState(intArrayOf(android.R.attr.state_pressed),
-                android.graphics.drawable.LayerDrawable(arrayOf(pressedBase, round(ripple, radius))))
-            addState(intArrayOf(), base)
-        }
+    fun setPressable(v: View, base: Drawable, radius: Float, ripple: Int = 0x26FFFFFF) {
+        v.background = pressable(base, radius, ripple)
+        v.outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+        v.clipToOutline = true
+    }
 
     fun text(c: Context, s: CharSequence = "", size: Float = 18f, color: Int = TEXT, face: Typeface = REGULAR): TextView =
         TextView(c).apply {
@@ -154,7 +153,7 @@ object Ui {
         row.setPadding(u(22), 0, u(22), 0)
         val radius = 16f
         val base = if (style == Style.GHOST) round(Color.TRANSPARENT, radius, STROKE, 1f) else round(bg, radius)
-        row.background = pressable(base, radius)
+        setPressable(row, base, radius)
         if (icon != null) {
             row.addView(Icon(c, icon, fg), LinearLayout.LayoutParams(u(textSize * 1.3f), u(textSize * 1.3f)).apply {
                 if (label.isNotEmpty()) rightMargin = u(10)
@@ -188,7 +187,7 @@ object Ui {
     fun toggleChip(c: Context, label: String, selected: Boolean, onClick: () -> Unit): TextView {
         val t = text(c, label, 17f, if (selected) ON_ACCENT else TEXT, MEDIUM)
         t.setPadding(u(18), u(10), u(18), u(10))
-        t.background = pressable(if (selected) round(ACCENT, 40f) else round(SURFACE2, 40f, STROKE, 1f), 40f)
+        setPressable(t, if (selected) round(ACCENT, 40f) else round(SURFACE2, 40f, STROKE, 1f), 40f)
         t.isClickable = true
         t.setOnClickListener { onClick() }
         return t
