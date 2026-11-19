@@ -15,7 +15,7 @@ import android.widget.TextView
  */
 class LoveNote(c: Context, private val messages: List<String>, signature: String?) : LinearLayout(c) {
     /** Fixed height (layout px) so changing messages never move the layout. */
-    val fixedHeight = Ui.u(112)
+    val fixedHeight = Ui.u(84)
     companion object {
         const val ROSE = 0xFFD9A09A.toInt()
         private const val ROSE_BG = 0xFF2E2221.toInt()
@@ -26,7 +26,7 @@ class LoveNote(c: Context, private val messages: List<String>, signature: String
     }
 
     private val heart = Icon(c, Icon.Kind.HEART, ROSE)
-    private val text: TextView = Ui.text(c, "", 20f, Ui.TEXT, Ui.REGULAR)
+    private val text: TextView = Ui.text(c, "", 18f, Ui.TEXT, Ui.REGULAR)
     private val from: TextView = Ui.text(c, signature ?: "", 15f, Ui.TEXT2, Ui.REGULAR)
     private var order = messages.indices.drop(1).shuffled() // the first message always comes first
     private var pos = -1
@@ -63,11 +63,11 @@ class LoveNote(c: Context, private val messages: List<String>, signature: String
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(Ui.u(20), Ui.u(12), Ui.u(20), Ui.u(12))
+        setPadding(Ui.u(16), Ui.u(8), Ui.u(16), Ui.u(8))
         background = Ui.round(ROSE_BG, 20f, ROSE_BORDER, 1f)
         val badge = FrameLayout(c)
-        badge.addView(heart, Ui.flp(Ui.u(32), Ui.u(32), Gravity.CENTER))
-        addView(badge, LayoutParams(Ui.u(40), Ui.u(40)).apply { rightMargin = Ui.u(16) })
+        badge.addView(heart, Ui.flp(Ui.u(26), Ui.u(26), Gravity.CENTER))
+        addView(badge, LayoutParams(Ui.u(32), Ui.u(32)).apply { rightMargin = Ui.u(12) })
         val col = Ui.vertical(c)
         text.setLineSpacing(Ui.uf(4f), 1f)
         Ui.ellipsize(text, 2)
