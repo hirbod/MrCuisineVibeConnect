@@ -25,6 +25,7 @@ import app.toque.recipes.OnlineSync
 import app.toque.ui.Icon
 import app.toque.ui.MainActivity
 import app.toque.ui.Screen
+import app.toque.ui.ToggleSwitch
 import app.toque.ui.Ui
 import app.toque.update.Updater
 
@@ -72,8 +73,8 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         twinBox.addView(port, LinearLayout.LayoutParams(Ui.u(120), Ui.u(58)))
         machine.addView(twinBox, Ui.lp(t = 12))
         linkText = Ui.text(c, "", 16f, Ui.TEXT2).apply { setLineSpacing(0f, 1.15f) }
-        machine.addView(linkText, Ui.lp(t = 12))
-        machine.addView(Ui.button(c, tr("Appliquer"), Ui.Style.PRIMARY, Icon.Kind.CHECK, height = 58) { applyMode() }, Ui.lp(Ui.WRAP, Ui.WRAP, t = 14))
+        machine.addView(linkText, Ui.lp(t = 14))
+        machine.addView(Ui.button(c, tr("Appliquer"), Ui.Style.PRIMARY, Icon.Kind.CHECK, height = 46, textSize = 17f) { applyMode() }, Ui.lp(Ui.WRAP, Ui.WRAP, t = 18))
         renderModes()
 
         // ---- Sécurité
@@ -82,18 +83,18 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
             a.prefs.requireBowl = on
             a.machine.reconfigure { a.refusal(it) }
         })
-        bowlText = Ui.text(c, "", 15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.1f) }
-        safety.addView(bowlText, Ui.lp(t = 6))
+        bowlText = Ui.text(c, "", 15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.15f) }
+        safety.addView(bowlText, Ui.lp(t = 8, r = 76))
         safety.addView(toggle(tr("Montée progressive de la vitesse si le contenu est chaud"), a.prefs.hotRamp) { on ->
             a.prefs.hotRamp = on
             a.machine.reconfigure { a.refusal(it) }
-        }, Ui.lp(t = 10))
+        }, Ui.lp(t = 20))
         safety.addView(Ui.text(c, tr("À partir de 60 °C, la lame atteint sa vitesse en 2 à 3 secondes pour éviter les projections. À froid, elle y va directement."),
-            15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.1f) }, Ui.lp(t = 6))
-        safety.addView(toggle(tr("Enchaîner les étapes machine des recettes"), a.prefs.chainSteps) { a.prefs.chainSteps = it }, Ui.lp(t = 10))
+            15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.15f) }, Ui.lp(t = 8, r = 76))
+        safety.addView(toggle(tr("Enchaîner les étapes machine des recettes"), a.prefs.chainSteps) { a.prefs.chainSteps = it }, Ui.lp(t = 20))
         safety.addView(Ui.text(c, tr("Les réglages qui se suivent sans geste à faire entre eux partent ensemble d'un seul appui sur Lancer : la lame passe directement à la vitesse et à la température suivantes."),
-            15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.1f) }, Ui.lp(t = 6))
-        safety.addView(toggle(tr("Sons"), a.prefs.sound) { a.prefs.sound = it }, Ui.lp(t = 10))
+            15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.15f) }, Ui.lp(t = 8, r = 76))
+        safety.addView(toggle(tr("Sons"), a.prefs.sound) { a.prefs.sound = it }, Ui.lp(t = 20))
 
         // ---- Langue (titre bilingue : trouvable quelle que soit la langue affichée)
         val language = section(right, "Langue · Language", Icon.Kind.INFO)
@@ -101,7 +102,7 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         language.addView(dropdown(options, a.prefs.language) { code ->
             a.prefs.language = code
             a.applyLanguage()
-        }, Ui.lp(Ui.MATCH, Ui.u(58), t = 4))
+        }, Ui.lp(Ui.MATCH, Ui.u(50), t = 4))
 
         // ---- Date et heure
         val time = section(right, tr("Date et heure"), Icon.Kind.CLOCK)
@@ -111,11 +112,11 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         time.addView(dropdown(zones, a.prefs.timeZone) { z ->
             a.prefs.timeZone = z
             setClock()
-        }, Ui.lp(Ui.MATCH, Ui.u(58), t = 4))
+        }, Ui.lp(Ui.MATCH, Ui.u(50), t = 4))
         timeText = Ui.text(c, "", 16f, Ui.TEXT2).apply { setLineSpacing(0f, 1.15f) }
-        time.addView(timeText, Ui.lp(t = 10))
-        time.addView(Ui.button(c, tr("Mettre à l'heure"), Ui.Style.SECONDARY, Icon.Kind.SYNC, height = 52) { setClock() },
-            Ui.lp(Ui.WRAP, Ui.WRAP, t = 10))
+        time.addView(timeText, Ui.lp(t = 12))
+        time.addView(Ui.button(c, tr("Mettre à l'heure"), Ui.Style.SECONDARY, Icon.Kind.SYNC, height = 46, textSize = 17f) { setClock() },
+            Ui.lp(Ui.WRAP, Ui.WRAP, t = 16))
         refreshTime()
 
         // ---- Recettes Lidl
@@ -123,24 +124,25 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         lidl.addView(Ui.text(c, tr("Toque télécharge lui-même les recettes officielles du Monsieur Cuisine connect sur monsieur-cuisine.com (sans compte)."),
             16f, Ui.TEXT2).apply { setLineSpacing(0f, 1.15f) })
         syncText = Ui.text(c, "", 16f, Ui.TEXT)
-        lidl.addView(syncText, Ui.lp(t = 10))
+        lidl.addView(syncText, Ui.lp(t = 12))
         val b1 = Ui.horizontal(c)
-        b1.addView(Ui.button(c, tr("Synchroniser"), Ui.Style.PRIMARY, Icon.Kind.SYNC, height = 58) { sync(online = true) }, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
-        lidl.addView(b1, Ui.lp(t = 12))
+        b1.addView(Ui.button(c, tr("Synchroniser"), Ui.Style.PRIMARY, Icon.Kind.SYNC, height = 46, textSize = 17f) { sync(online = true) }, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
+        lidl.addView(b1, Ui.lp(t = 16))
         lidl.addView(Ui.text(c, tr("Autre source : les recettes déjà présentes dans l'appli d'origine du robot (remplacent celles du site)."),
-            14f, Ui.TEXT3).apply { setLineSpacing(0f, 1.1f) }, Ui.lp(t = 12))
+            15f, Ui.TEXT3).apply { setLineSpacing(0f, 1.15f) }, Ui.lp(t = 20))
         val b2 = Ui.horizontal(c)
-        b2.addView(Ui.button(c, tr("Importer de l'appli d'origine"), Ui.Style.SECONDARY, height = 52) { sync(online = false) }, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
-        b2.addView(Ui.button(c, tr("Ouvrir l'appli d'origine"), Ui.Style.GHOST, Icon.Kind.LINK, height = 52) { a.openVendorApp() })
-        lidl.addView(b2, Ui.lp(t = 6))
-        lidl.addView(toggle(tr("Synchro automatique chaque nuit"), a.prefs.autoSync) { a.prefs.autoSync = it }, Ui.lp(t = 10))
+        b2.addView(Ui.button(c, tr("Importer de l'appli d'origine"), Ui.Style.SECONDARY, height = 46, textSize = 17f) { sync(online = false) }, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
+        b2.addView(Ui.button(c, tr("Ouvrir l'appli d'origine"), Ui.Style.GHOST, Icon.Kind.LINK, height = 46, textSize = 17f) { a.openVendorApp() })
+        lidl.addView(b2, Ui.lp(t = 12))
+        lidl.addView(Ui.divider(c), Ui.lp(Ui.MATCH, Ui.u(1), t = 18))
+        lidl.addView(toggle(tr("Synchro automatique chaque nuit"), a.prefs.autoSync) { a.prefs.autoSync = it }, Ui.lp(t = 14))
 
         // ---- Mises à jour
         val updates = section(left, tr("Mises à jour"), Icon.Kind.INFO)
         updText = Ui.text(c, "", 16f, Ui.TEXT2).apply { setLineSpacing(0f, 1.15f) }
         updates.addView(updText)
         updButtons = Ui.horizontal(c)
-        updates.addView(updButtons, Ui.lp(t = 12))
+        updates.addView(updButtons, Ui.lp(t = 16))
         Updater.onInstallError = { msg -> updateFailed(msg) }
         renderUpdate()
 
@@ -159,12 +161,13 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
     }
 
     private fun section(parent: LinearLayout, title: String, icon: Icon.Kind): LinearLayout {
-        val card = Ui.card(c, 24f)
+        val card = Ui.card(c, 20f)
+        card.setPadding(Ui.u(22), Ui.u(20), Ui.u(22), Ui.u(22))
         val head = Ui.horizontal(c)
-        head.addView(Icon(c, icon, Ui.ACCENT), LinearLayout.LayoutParams(Ui.u(24), Ui.u(24)).apply { rightMargin = Ui.u(10) })
-        head.addView(Ui.text(c, title, 21f, Ui.TEXT, Ui.MEDIUM))
-        card.addView(head, Ui.lp(b = 10))
-        parent.addView(card, Ui.lp(b = 16))
+        head.addView(Icon(c, icon, Ui.ACCENT), LinearLayout.LayoutParams(Ui.u(22), Ui.u(22)).apply { rightMargin = Ui.u(10) })
+        head.addView(Ui.text(c, title, 20f, Ui.TEXT, Ui.MEDIUM))
+        card.addView(head, Ui.lp(b = 16))
+        parent.addView(card, Ui.lp(b = 18))
         return card
     }
 
@@ -181,17 +184,14 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
 
     private fun toggle(label: String, initial: Boolean, onChange: (Boolean) -> Unit): LinearLayout {
         val row = Ui.horizontal(c)
-        row.addView(Ui.text(c, label, 18f, Ui.TEXT), LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
-        var state = initial
-        val sw = Ui.text(c, "", 16f, Ui.TEXT, Ui.MEDIUM).apply { gravity = Gravity.CENTER }
-        fun paint() {
-            sw.text = if (state) tr("Oui") else tr("Non")
-            sw.setTextColor(if (state) Ui.ON_ACCENT else Ui.TEXT2)
-            sw.background = if (state) Ui.round(Ui.ACCENT, 24f) else Ui.round(Ui.SURFACE3, 24f)
-        }
-        paint()
-        sw.setOnClickListener { state = !state; paint(); onChange(state) }
-        row.addView(sw, LinearLayout.LayoutParams(Ui.u(84), Ui.u(46)))
+        row.minimumHeight = Ui.u(44)
+        row.addView(Ui.text(c, label, 18f, Ui.TEXT).apply { setLineSpacing(0f, 1.1f) },
+            LinearLayout.LayoutParams(0, Ui.WRAP, 1f).apply { rightMargin = Ui.u(20) })
+        val sw = ToggleSwitch(c, initial)
+        sw.contentDescription = label
+        row.addView(sw, LinearLayout.LayoutParams(Ui.u(56), Ui.u(32)))
+        row.isClickable = true
+        row.setOnClickListener { sw.checked = !sw.checked; onChange(sw.checked) }
         return row
     }
 
@@ -212,7 +212,7 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         box.setPadding(Ui.u(16), 0, Ui.u(14), 0)
         box.background = Ui.pressable(Ui.round(Ui.SURFACE2, 16f, Ui.STROKE, 1f), 16f)
         val label = options.firstOrNull { it.first == selected }?.second ?: options.first().second
-        box.addView(Ui.text(c, label, 19f, Ui.TEXT), LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
+        box.addView(Ui.ellipsize(Ui.text(c, label, 17f, Ui.TEXT)), LinearLayout.LayoutParams(0, Ui.WRAP, 1f))
         box.addView(Icon(c, Icon.Kind.CHEVRON, Ui.TEXT2).apply { rotation = 90f }, LinearLayout.LayoutParams(Ui.u(22), Ui.u(22)))
         box.isClickable = true
         box.setOnClickListener {
@@ -397,11 +397,11 @@ class SettingsScreen(a: MainActivity) : Screen(a) {
         updButtons.removeAllViews()
         when (upd) {
             Upd.IDLE, Upd.UP_TO_DATE, Upd.ERROR ->
-                updButtons.addView(Ui.button(c, tr("Rechercher une mise à jour"), Ui.Style.PRIMARY, Icon.Kind.SYNC, height = 58) { checkUpdate() })
+                updButtons.addView(Ui.button(c, tr("Rechercher une mise à jour"), Ui.Style.SECONDARY, Icon.Kind.SYNC, height = 46, textSize = 17f) { checkUpdate() })
             Upd.AVAILABLE -> {
-                updButtons.addView(Ui.button(c, tr("Installer la version %s", r?.version), Ui.Style.PRIMARY, Icon.Kind.CHECK, height = 58) { installUpdate() },
+                updButtons.addView(Ui.button(c, tr("Installer la version %s", r?.version), Ui.Style.PRIMARY, Icon.Kind.CHECK, height = 46, textSize = 17f) { installUpdate() },
                     Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
-                updButtons.addView(Ui.button(c, tr("Plus tard"), Ui.Style.GHOST, height = 58) { upd = Upd.IDLE; renderUpdate() })
+                updButtons.addView(Ui.button(c, tr("Plus tard"), Ui.Style.GHOST, height = 46, textSize = 17f) { upd = Upd.IDLE; renderUpdate() })
             }
             else -> {}
         }
