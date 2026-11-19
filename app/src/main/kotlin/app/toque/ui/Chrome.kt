@@ -36,13 +36,13 @@ abstract class Screen(val a: MainActivity) {
 
 /** Barre supérieure : retour, titre, état de la base, heure. */
 class TopBar(private val a: MainActivity) : LinearLayout(a) {
-    private val back = Icon(a, Icon.Kind.BACK, Ui.TEXT)
+    private val back = navButton(Icon.Kind.BACK, "Zurück") { a.back() }
     private val titleView = Ui.ellipsize(Ui.text(a, "", 24f, Ui.TEXT, Ui.MEDIUM))
     private val temp = Ui.chip(a, "", Icon.Kind.THERMO, Ui.TEXT2)
     private val lid = Ui.chip(a, tr("Couvercle ouvert"), Icon.Kind.LID, Ui.WARN, 0x33FFC14D)
     private val link = Ui.chip(a, "", Icon.Kind.LINK, Ui.TEXT2)
     private val clock = Ui.text(a, "", 22f, Ui.TEXT, Ui.LIGHT)
-    private val home = Icon(a, Icon.Kind.HOME, Ui.TEXT)
+    private val home = navButton(Icon.Kind.HOME, "Startseite") { a.home() }
     private val handler = Handler(Looper.getMainLooper())
     private val tick = object : Runnable {
         override fun run() {
@@ -56,24 +56,17 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
     init {
         orientation = HORIZONTAL
         setGravity(Gravity.CENTER_VERTICAL)
-        setPadding(Ui.u(10), 0, Ui.u(18), 0)
+        setPadding(0, 0, Ui.u(18), 0)
         setBackgroundColor(Ui.BG)
         // Round, softly filled buttons; the icons inside are drawn crisp (see Icon).
-        back.setPadding(Ui.u(17), Ui.u(17), Ui.u(17), Ui.u(17))
-        back.background = navBg()
-        back.contentDescription = "Zurück"
-        back.setOnClickListener { a.back() }
-        addView(back, LayoutParams(Ui.u(52), Ui.u(52)).apply { leftMargin = Ui.u(4) })
+        // Generous touch area: the full bar height and 76 px wide, around a small round button.
+        addView(back, LayoutParams(Ui.u(76), Ui.MATCH))
         addView(titleView, LayoutParams(0, Ui.WRAP, 1f).apply { leftMargin = Ui.u(6) })
         addView(lid, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
         addView(temp, Ui.lp(Ui.WRAP, Ui.WRAP, r = 10))
         addView(link, Ui.lp(Ui.WRAP, Ui.WRAP, r = 16))
         addView(clock, Ui.lp(Ui.WRAP, Ui.WRAP, r = 6))
-        home.setPadding(Ui.u(17), Ui.u(17), Ui.u(17), Ui.u(17))
-        home.background = navBg()
-        home.contentDescription = "Startseite"
-        home.setOnClickListener { a.home() }
-        addView(home, LayoutParams(Ui.u(52), Ui.u(52)).apply { leftMargin = Ui.u(4) })
+        addView(home, LayoutParams(Ui.u(68), Ui.MATCH).apply { rightMargin = -Ui.u(14) })
         lid.visibility = View.GONE
         temp.visibility = View.GONE
         // Accès caché aux réglages Android : 5 appuis rapides sur l'heure.
@@ -87,9 +80,25 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
         }
     }
 
-    /** Small 38 px circle centred in a larger 52 px touch target (hit slop). */
-    private fun navBg(): android.graphics.drawable.Drawable =
-        android.graphics.drawable.InsetDrawable(Ui.pressable(Ui.round(Ui.SURFACE2, 19f), 19f), Ui.u(7))
+    /**
+     * Round 40 px button inside a much larger invisible touch area. The pressed state only lights
+     * up the circle (no square ripple), and the icon itself stays crisp (see Icon).
+     */
+    private fun navButton(kind: Icon.Kind, label: String, onClick: () -> Unit): android.widget.FrameLayout {
+        val box = android.widget.FrameLayout(a)
+        val circle = View(a)
+        circle.background = android.graphics.drawable.StateListDrawable().apply {
+            addState(intArrayOf(android.R.attr.state_pressed), Ui.round(Ui.SURFACE3, 20f, Ui.STROKE, 1f))
+            addState(intArrayOf(), Ui.round(Ui.SURFACE2, 20f))
+        }
+        circle.isDuplicateParentStateEnabled = true
+        box.addView(circle, Ui.flp(Ui.u(40), Ui.u(40), android.view.Gravity.CENTER))
+        box.addView(Icon(a, kind, Ui.TEXT), Ui.flp(Ui.u(22), Ui.u(22), android.view.Gravity.CENTER))
+        box.contentDescription = label
+        box.isClickable = true
+        box.setOnClickListener { onClick() }
+        return box
+    }
 
     fun startClock() {
         handler.removeCallbacks(tick)
@@ -102,7 +111,7 @@ class TopBar(private val a: MainActivity) : LinearLayout(a) {
         titleView.text = t
         // Home: no back arrow, so the title lines up with the page content instead of leaving a gap.
         back.visibility = if (canGoBack) View.VISIBLE else View.GONE
-        (titleView.layoutParams as LayoutParams).leftMargin = Ui.u(if (canGoBack) 10 else 18)
+        (titleView.layoutParams as LayoutParams).leftMargin = Ui.u(if (canGoBack) 0 else 28)
         titleView.requestLayout()
         home.visibility = if (canGoBack) View.VISIBLE else View.GONE
     }
